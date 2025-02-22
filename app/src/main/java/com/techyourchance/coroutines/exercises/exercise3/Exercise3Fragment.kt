@@ -55,11 +55,22 @@ class Exercise3Fragment : BaseFragment() {
         btnGetReputation = view.findViewById(R.id.btn_get_reputation)
         btnGetReputation.setOnClickListener {
             logThreadInfo("button callback")
+
             job = coroutineScope.launch {
+                val elapsedTimeNanoSeconds = System.nanoTime()
+                while (true) {
+                    val elapsedTimeMilliSeconds = (System.nanoTime() - elapsedTimeNanoSeconds) / 1_000_000L
+                    txtElapsedTime.text = "Elapsed Time: $elapsedTimeMilliSeconds ms"
+                    delay(100)
+                }
+            }
+
+            coroutineScope.launch {
                 btnGetReputation.isEnabled = false
                 val reputation = getReputationForUser(edtUserId.text.toString())
                 Toast.makeText(requireContext(), "reputation: $reputation", Toast.LENGTH_SHORT).show()
                 btnGetReputation.isEnabled = true
+                job?.cancel()
             }
         }
 
@@ -68,7 +79,7 @@ class Exercise3Fragment : BaseFragment() {
 
     override fun onStop() {
         super.onStop()
-        job?.cancel()
+        coroutineScope.coroutineContext.cancelChildren()
         btnGetReputation.isEnabled = true
     }
 
