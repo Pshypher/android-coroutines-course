@@ -22,7 +22,6 @@ class Exercise6BenchmarkUseCase(private val postBenchmarkResultsEndpoint: PostBe
 
         logThreadInfo("benchmark completed")
 
-        coroutineContext.ensureActive()
         postBenchmarkResultsEndpoint.postBenchmarkResults(benchmarkDurationSeconds, iterationsCount)
 
         logThreadInfo("benchmark results posted to the server")
