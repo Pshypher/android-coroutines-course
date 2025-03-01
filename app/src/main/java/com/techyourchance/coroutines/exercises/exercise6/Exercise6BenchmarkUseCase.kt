@@ -3,6 +3,7 @@ package com.techyourchance.coroutines.exercises.exercise6
 import com.techyourchance.coroutines.common.ThreadInfoLogger
 import com.techyourchance.coroutines.common.ThreadInfoLogger.logThreadInfo
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 
@@ -15,11 +16,13 @@ class Exercise6BenchmarkUseCase(private val postBenchmarkResultsEndpoint: PostBe
 
         var iterationsCount: Long = 0
         while (System.nanoTime() < stopTimeNano) {
+            coroutineContext.ensureActive()
             iterationsCount++
         }
 
         logThreadInfo("benchmark completed")
 
+        coroutineContext.ensureActive()
         postBenchmarkResultsEndpoint.postBenchmarkResults(benchmarkDurationSeconds, iterationsCount)
 
         logThreadInfo("benchmark results posted to the server")

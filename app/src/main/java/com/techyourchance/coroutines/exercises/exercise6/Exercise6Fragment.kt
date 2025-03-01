@@ -8,6 +8,7 @@ import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import com.techyourchance.coroutines.R
 import com.techyourchance.coroutines.common.BaseFragment
 import com.techyourchance.coroutines.common.ThreadInfoLogger.logThreadInfo
@@ -24,8 +25,6 @@ class Exercise6Fragment : BaseFragment() {
 
     private lateinit var btnStart: Button
     private lateinit var txtRemainingTime: TextView
-
-    private var hasBenchmarkBeenStartedOnce = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,13 +47,21 @@ class Exercise6Fragment : BaseFragment() {
             }
 
             coroutineScope.launch {
-                btnStart.isEnabled = false
-                val iterationsCount = benchmarkUseCase.executeBenchmark(benchmarkDurationSeconds)
-                Toast.makeText(requireContext(), "$iterationsCount", Toast.LENGTH_SHORT).show()
-                btnStart.isEnabled = true
-            }
+                try {
+                    btnStart.isEnabled = false
+                    val iterationsCount = benchmarkUseCase.executeBenchmark(benchmarkDurationSeconds)
+                    Toast.makeText(requireContext(), "$iterationsCount", Toast.LENGTH_SHORT).show()
+                    btnStart.isEnabled = true
+                } catch (e: CancellationException) {
+                    btnStart.isEnabled = true
+                    txtRemainingTime.text = "done!"
+                    logThreadInfo("benchmark cancelled")
+                    if (lifecycle.currentState.isAtLeast(Lifecycle.State.CREATED)){
+                        Toast.makeText(requireContext(), "cancelled", Toast.LENGTH_SHORT).show()
+                    }
+                }
 
-            hasBenchmarkBeenStartedOnce = true
+            }
         }
 
         return view
@@ -64,10 +71,6 @@ class Exercise6Fragment : BaseFragment() {
         logThreadInfo("onStop()")
         super.onStop()
         coroutineScope.coroutineContext.cancelChildren()
-        if (hasBenchmarkBeenStartedOnce) {
-            btnStart.isEnabled = true
-            txtRemainingTime.text = "done!"
-        }
     }
 
 
