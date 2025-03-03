@@ -31,7 +31,11 @@ class Exercise8Fragment : BaseFragment() {
         fetchAndCacheUsersUseCase = compositionRoot.fetchAndCacheUserUseCase
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         val view = inflater.inflate(R.layout.fragment_exercise_8, container, false)
 
         view.apply {
@@ -52,8 +56,12 @@ class Exercise8Fragment : BaseFragment() {
                     fetchAndCacheUsersUseCase.fetchAndCacheUsers(userIds)
                     updateElapsedTimeJob.cancel()
                 } catch (e: CancellationException) {
-                    updateElapsedTimeJob.cancelAndJoin()
-                    txtElapsedTime.text = ""
+                    try {
+                        updateElapsedTimeJob.cancelAndJoin()
+                        txtElapsedTime.text = ""
+                    } catch (e: CancellationException) {
+                        txtElapsedTime.text = ""
+                    }
                 } finally {
                     btnFetch.isEnabled = true
                 }
