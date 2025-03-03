@@ -20,9 +20,33 @@ class Exercise7Test {
         runBlocking {
             val scopeJob = Job()
             val scope = CoroutineScope(scopeJob + CoroutineName("outer scope") + Dispatchers.IO)
+            val job = scope.launch(CoroutineName("outer coroutine")) {
+                printCoroutineScopeInfo()
+                withContext(CoroutineName("outer withContext")) {
+                    delay(20)
+                    printCoroutineScopeInfo()
+                    try {
+                        withContext(CoroutineName("inner withContext")) {
+                            try {
+                                delay(50)
+                                printCoroutineScopeInfo()
+                                printJobsHierarchy(scopeJob)
+                            } catch (e: CancellationException) {
+                                println("inner withContext cancelled")
+                            }
+                        }
+                    } catch (e: CancellationException) {
+                        println("outer withContext cancelled")
+                    }
+                }
+            }
 
+            scope.launch(CoroutineName("outer coroutine sibling")) {
+                delay(45)
+                scopeJob.cancel()
+            }
 
-            scopeJob.join()
+            job.join()
             println("test done")
         }
     }
@@ -36,9 +60,35 @@ class Exercise7Test {
         runBlocking {
             val scopeJob = Job()
             val scope = CoroutineScope(scopeJob + CoroutineName("outer scope") + Dispatchers.IO)
+            val job = scope.launch(CoroutineName("outer coroutine")) {
+                printCoroutineScopeInfo()
+                withContext(CoroutineName("nested withContext")) {
+                    try {
+                        delay(50)
+                        printCoroutineScopeInfo()
 
+                        val innerJob = launch(CoroutineName("inner nested coroutine")) {
+                            try {
+                                delay(50)
+                                printCoroutineScopeInfo()
+                                printJobsHierarchy(scopeJob)
+                            } catch (e: CancellationException) {
+                                println("inner nested coroutine cancelled")
+                            }
+                        }
+                        innerJob.join()
+                        println("nested withContext done")
+                    } catch (e: CancellationException) {
+                        println("nested withContext cancelled")
+                    }
+                }
+            }
 
-            scopeJob.join()
+            scope.launch(CoroutineName("outer coroutine sibling")) {
+                delay(125)
+                scopeJob.cancel()
+            }
+            job.join()
             println("test done")
         }
     }
@@ -52,12 +102,36 @@ class Exercise7Test {
         runBlocking {
             val scopeJob = Job()
             val scope = CoroutineScope(scopeJob + CoroutineName("outer scope") + Dispatchers.IO)
+            val job = scope.launch(CoroutineName("outer coroutine")) {
+                printCoroutineScopeInfo()
+                withContext(CoroutineName("nested withContext")) {
+                    try {
+                        delay(50)
+                        printCoroutineScopeInfo()
 
+                        val innerJob = scope.launch(CoroutineName("nested outer scope")) {
+                            try {
+                                delay(50)
+                                printCoroutineScopeInfo()
+                                printJobsHierarchy(scopeJob)
+                            } catch (e: CancellationException) {
+                                println("nested outer scope cancelled")
+                            }
+                        }
+                        innerJob.join()
+                        println("nested withContext done")
+                    } catch (e: CancellationException) {
+                        println("nested withContext cancelled")
+                    }
+                }
+            }
 
-            scopeJob.join()
+            scope.launch(CoroutineName("outer coroutine sibling")) {
+                delay(150)
+                scopeJob.cancel()
+            }
+            job.join()
             println("test done")
         }
     }
-
-
 }
