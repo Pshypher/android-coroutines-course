@@ -50,15 +50,12 @@ class Exercise9Fragment : BaseFragment() {
                 updateElapsedTime()
             }
 
-            coroutineScope.launch {
-                val users = fetchAndCacheUsersUseCase.fetchAndCacheUsers(userIds)
-                bindUsers(users)
-            }
 
             coroutineScope.launch {
                 try {
                     btnFetch.isEnabled = false
-                    fetchAndCacheUsersUseCase.fetchAndCacheUsers(userIds)
+                    val users = fetchAndCacheUsersUseCase.fetchAndCacheUsers(userIds)
+                    bindUsers(users)
                     updateElapsedTimeJob.cancel()
                 } catch (e: CancellationException) {
                     withContext(NonCancellable) {
