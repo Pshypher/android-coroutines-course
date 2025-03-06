@@ -3,6 +3,7 @@ package com.techyourchance.coroutines.exercises.exercise10
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -21,7 +22,10 @@ import java.lang.Exception
 
 class Exercise10Fragment : BaseFragment() {
 
-    private val coroutineScope = CoroutineScope(Dispatchers.Main.immediate)
+    private val coroutineScope = CoroutineScope(SupervisorJob() +  Dispatchers.Main.immediate + CoroutineExceptionHandler { _, t ->
+        t.localizedMessage?.let { Log.d(TAG, it) }
+        Toast.makeText(requireContext(), "coroutine exception: $t", Toast.LENGTH_SHORT).show()
+    })
 
     override val screenTitle get() = ScreenReachableFromHome.EXERCISE_10.description
 
@@ -118,6 +122,8 @@ class Exercise10Fragment : BaseFragment() {
     }
 
     companion object {
+        private const val TAG = "Exercise10Fragment"
+
         fun newInstance(): Fragment {
             return Exercise10Fragment()
         }
